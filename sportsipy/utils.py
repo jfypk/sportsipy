@@ -18,9 +18,6 @@ SEASON_START_MONTH = {
     'mlb': {'start': 4, 'wrap': False},
     'nba': {'start': 10, 'wrap': True},
     'ncaab': {'start': 11, 'wrap': True},
-    'ncaaf': {'start': 8, 'wrap': False},
-    'nfl': {'start': 9, 'wrap': False},
-    'nhl': {'start': 10, 'wrap': True}
 }
 
 
