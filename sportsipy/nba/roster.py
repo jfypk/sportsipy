@@ -1344,7 +1344,7 @@ class Player(AbstractPlayer):
     @_int_property_decorator
     def salary(self):
         """
-        Returns an ``int`` of the player's annual salary rounded down.
+        Returns an ``int`` of the player's total salary accumulated during career.
         """
         return self._salary
 

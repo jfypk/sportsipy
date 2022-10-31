@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import ipdb
 from datetime import timedelta
 from pyquery import PyQuery as pq
 from urllib.error import HTTPError
@@ -283,8 +284,8 @@ class Boxscore:
         """
         Return the string representation of the class.
         """
-        return (f'Boxscore for {self._away_name.text()} at '
-                f'{self._home_name.text()} ({self.date})')
+        return (f'Boxscore for {self._away_name} at '
+                f'{self._home_name} ({self.date})')
 
     def __repr__(self):
         """
@@ -365,8 +366,34 @@ class Boxscore:
 
         Returns
         -------
-        PyQuery object
-            The complete text for the requested tag.
+        string
+            The team name
+        """
+        scheme = BOXSCORE_SCHEME[field]
+        game = boxscore(scheme).children('table').attr['data-tip'].split(' at ')
+        if field == 'away_name':
+            return game[0]
+        else:
+            return game[1]
+
+    def _parse_team_abbreviation(self, field, boxscore):
+        """
+        Retrieve the team's abbreviation.
+
+        The team abbreviation is stored in the winner or loser which can be used to parse
+        the winning and losing team's abbreviation.
+
+        Parameters
+        ----------
+        field : string
+            The name of the attribute to parse
+        boxscore : PyQuery object
+            A PyQuery object containing all of the HTML data from the boxscore.
+
+        Returns
+        -------
+        string
+            The team's abbreviation.
         """
         scheme = BOXSCORE_SCHEME[field]
         return boxscore(scheme)
@@ -651,6 +678,11 @@ class Boxscore:
                 value = self._parse_name(short_field, boxscore)
                 setattr(self, field, value)
                 continue
+            if short_field == 'winning_abbr' or \
+                short_field == 'losing_abbr':
+                value = self._parse_team_abbreviation(short_field, boxscore)
+                setattr(self, field, value)
+                continue
             if short_field == 'summary':
                 value = self._parse_summary(boxscore)
                 setattr(self, field,  value)
@@ -851,8 +883,8 @@ class Boxscore:
         Pistons'.
         """
         if self.winner == HOME:
-            return self._home_name.text()
-        return self._away_name.text()
+            return self._home_name
+        return self._away_name
 
     @property
     def winning_abbr(self):
@@ -860,9 +892,7 @@ class Boxscore:
         Returns a ``string`` of the winning team's abbreviation, such as 'DET'
         for the Detroit Pistons.
         """
-        if self.winner == HOME:
-            return utils._parse_abbreviation(self._home_name)
-        return utils._parse_abbreviation(self._away_name)
+        return self._winning_abbr.text()
 
     @property
     def losing_name(self):
@@ -870,8 +900,8 @@ class Boxscore:
         Returns a ``string`` of the losing team's name, such as 'Phoenix Suns'.
         """
         if self.winner == HOME:
-            return self._away_name.text()
-        return self._home_name.text()
+            return self._away_name
+        return self._home_name
 
     @property
     def losing_abbr(self):
@@ -879,9 +909,7 @@ class Boxscore:
         Returns a ``string`` of the losing team's abbreviation, such as 'PHO'
         for the Phoenix Suns.
         """
-        if self.winner == HOME:
-            return utils._parse_abbreviation(self._away_name)
-        return utils._parse_abbreviation(self._home_name)
+        return self._losing_abbr.text()
 
     @float_property_decorator
     def pace(self):
